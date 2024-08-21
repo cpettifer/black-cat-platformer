@@ -53,6 +53,11 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
             this.setVelocityY(-this.jumpSpeed)
             this.anims.play(animations.cat_jump.key)
         }
+
+        // Allow cat to "boost" downwards
+        if (this.cursors.down.isDown && !this.body.touching.down) {
+            this.setVelocityY(this.jumpSpeed)
+        }
     }
 
     kill() {
