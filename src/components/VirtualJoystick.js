@@ -8,8 +8,6 @@ const mobileLandscape = '@media (orientation: landscape) and (max-height: 600px)
 const MAX_RADIUS = 55
 // Minimum stick deflection (as fraction of MAX_RADIUS) before input registers
 const DEAD_ZONE = 0.18
-// How far up the stick must point (normalised y) before jump triggers
-const JUMP_THRESHOLD = -0.5
 // How far sideways the stick must point before left/right triggers
 const MOVE_THRESHOLD = 0.35
 
@@ -81,7 +79,6 @@ export const VirtualJoystick = () => {
     const resetInput = useCallback(() => {
         mobileInput.left = false
         mobileInput.right = false
-        mobileInput.up = false
     }, [])
 
     const updateInput = useCallback(
@@ -95,7 +92,6 @@ export const VirtualJoystick = () => {
             const ny = dy / dist
             mobileInput.left = nx < -MOVE_THRESHOLD
             mobileInput.right = nx > MOVE_THRESHOLD
-            mobileInput.up = ny < JUMP_THRESHOLD
         },
         [resetInput]
     )
