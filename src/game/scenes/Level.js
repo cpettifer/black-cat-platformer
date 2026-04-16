@@ -8,7 +8,7 @@ import { TouchControls } from '../components/TouchControls'
 import { Collectibles } from './Collectibles'
 import { Platforms } from './Platforms'
 import { HazardManager } from './HazardManager'
-import { formatTime, calculateLevelBonus } from '../utils'
+import { formatTime, calculateLevelBonus, getHighScore, saveHighScore } from '../utils'
 
 export class Level extends Scene {
     hazards
@@ -17,6 +17,7 @@ export class Level extends Scene {
     collectibles
     score = 0
     scoreText
+    highScoreText
     levelText
     bonusText
     currentLevelIndex = 0
@@ -41,6 +42,10 @@ export class Level extends Scene {
         this.roundsCleared = 0
         this.score = 0
         this.scoreText = this.add.text(16, 16, 'Score: 0', { fontSize: '32px', fill: '#000' })
+        this.highScoreText = this.add.text(16, 52, `Best: ${getHighScore()}`, {
+            fontSize: '20px',
+            fill: '#555555'
+        })
         this.levelText = this.add
             .text(400, 300, '', { fontSize: '64px', fill: '#000' })
             .setOrigin(0.5)
@@ -163,6 +168,8 @@ export class Level extends Scene {
         this.physics.pause()
         this.player.kill()
 
+        const isNewHighScore = saveHighScore(this.score)
+
         this.add
             .text(400, 300, 'Game Over', {
                 fontSize: '64px',
@@ -170,12 +177,28 @@ export class Level extends Scene {
             })
             .setOrigin(0.5)
 
-        this.add
-            .text(400, 356, 'Press Space or tap to restart', {
-                fontSize: '21px',
-                fill: '#000'
-            })
-            .setOrigin(0.5)
+        if (isNewHighScore && this.score > 0) {
+            this.add
+                .text(400, 356, `New high score: ${this.score}!`, {
+                    fontSize: '24px',
+                    fill: '#ffff00'
+                })
+                .setOrigin(0.5)
+
+            this.add
+                .text(400, 390, 'Press Space or tap to restart', {
+                    fontSize: '21px',
+                    fill: '#000'
+                })
+                .setOrigin(0.5)
+        } else {
+            this.add
+                .text(400, 356, 'Press Space or tap to restart', {
+                    fontSize: '21px',
+                    fill: '#000'
+                })
+                .setOrigin(0.5)
+        }
 
         this.input.keyboard.once('keyup-SPACE', () => {
             this.scene.start(scenes.title)
@@ -193,5 +216,6 @@ export class Level extends Scene {
         this.hazards = null
         this.touchControls = null
         this.bonusText = null
+        this.highScoreText = null
     }
 }

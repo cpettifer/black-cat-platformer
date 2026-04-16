@@ -1,5 +1,17 @@
 import { LEVEL_BONUS_MAX, LEVEL_BONUS_DECAY_RATE } from './const/gameConfig'
 
+const HIGH_SCORE_KEY = 'blackcat_highscore'
+
+export const getHighScore = () => parseInt(localStorage.getItem(HIGH_SCORE_KEY) || '0', 10)
+
+export const saveHighScore = (score) => {
+    if (score > getHighScore()) {
+        localStorage.setItem(HIGH_SCORE_KEY, String(score))
+        return true
+    }
+    return false
+}
+
 export const formatTime = (totalSeconds) => {
     const minutes = Math.floor(totalSeconds / 60)
     const seconds = totalSeconds % 60

@@ -2,6 +2,7 @@ import { Scene } from 'phaser'
 
 import { scenes } from '../const/scenes'
 import { HelpPanel } from '../components/HelpPanel'
+import { getHighScore } from '../utils'
 
 export class Title extends Scene {
     constructor() {
@@ -39,6 +40,18 @@ export class Title extends Scene {
                 style: { font: '14px monospace', fill: '#aaaaaa' }
             })
             .setOrigin(0.5)
+
+        const highScore = getHighScore()
+        if (highScore > 0) {
+            this.make
+                .text({
+                    x: width / 2,
+                    y: height / 2 + 60,
+                    text: `High Score: ${highScore}`,
+                    style: { font: '16px monospace', fill: '#ffff00' }
+                })
+                .setOrigin(0.5)
+        }
 
         const helpPanel = new HelpPanel(this)
         helpPanel.setVisible(false)
