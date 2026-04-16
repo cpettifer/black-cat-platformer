@@ -1,5 +1,7 @@
 export const scenes = {
     preload: 'preload',
     title: 'title',
-    level: 'level'
+    level: 'level',
+    enterInitials: 'enterInitials',
+    highScores: 'highScores'
 }

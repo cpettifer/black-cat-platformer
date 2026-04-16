@@ -8,7 +8,7 @@ import { TouchControls } from '../components/TouchControls'
 import { Collectibles } from './Collectibles'
 import { Platforms } from './Platforms'
 import { HazardManager } from './HazardManager'
-import { formatTime, calculateLevelBonus, getHighScore, saveHighScore } from '../utils'
+import { formatTime, calculateLevelBonus, getHighScore, isTopTen } from '../utils'
 
 export class Level extends Scene {
     hazards
@@ -168,45 +168,43 @@ export class Level extends Scene {
         this.physics.pause()
         this.player.kill()
 
-        const isNewHighScore = saveHighScore(this.score)
+        this.add.text(400, 300, 'Game Over', { fontSize: '64px', fill: '#000' }).setOrigin(0.5)
 
-        this.add
-            .text(400, 300, 'Game Over', {
-                fontSize: '64px',
-                fill: '#000'
-            })
-            .setOrigin(0.5)
-
-        if (isNewHighScore && this.score > 0) {
+        if (isTopTen(this.score)) {
             this.add
-                .text(400, 356, `New high score: ${this.score}!`, {
-                    fontSize: '24px',
+                .text(400, 356, 'You made the high score table!', {
+                    fontSize: '21px',
                     fill: '#ffff00'
                 })
                 .setOrigin(0.5)
-
             this.add
-                .text(400, 390, 'Press Space or tap to restart', {
-                    fontSize: '21px',
+                .text(400, 390, 'Press Space or tap to enter your initials', {
+                    fontSize: '16px',
                     fill: '#000'
                 })
                 .setOrigin(0.5)
+
+            this.input.keyboard.once('keyup-SPACE', () => {
+                this.scene.start(scenes.enterInitials, { score: this.score })
+            })
+            this.input.once('pointerup', () => {
+                this.scene.start(scenes.enterInitials, { score: this.score })
+            })
         } else {
             this.add
-                .text(400, 356, 'Press Space or tap to restart', {
+                .text(400, 356, 'Press Space or tap to see high scores', {
                     fontSize: '21px',
                     fill: '#000'
                 })
                 .setOrigin(0.5)
+
+            this.input.keyboard.once('keyup-SPACE', () => {
+                this.scene.start(scenes.highScores)
+            })
+            this.input.once('pointerup', () => {
+                this.scene.start(scenes.highScores)
+            })
         }
-
-        this.input.keyboard.once('keyup-SPACE', () => {
-            this.scene.start(scenes.title)
-        })
-
-        this.input.once('pointerup', () => {
-            this.scene.start(scenes.title)
-        })
     }
 
     shutdown() {

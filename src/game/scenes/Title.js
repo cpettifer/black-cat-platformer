@@ -36,7 +36,7 @@ export class Title extends Scene {
             .text({
                 x: width / 2,
                 y: height / 2 + 20,
-                text: 'Press H for help',
+                text: 'Press H for help  •  Press T for high scores',
                 style: { font: '14px monospace', fill: '#aaaaaa' }
             })
             .setOrigin(0.5)
@@ -57,6 +57,10 @@ export class Title extends Scene {
         helpPanel.setVisible(false)
 
         this.input.keyboard.on('keydown-H', () => helpPanel.toggle())
+
+        this.input.keyboard.once('keydown-T', () => {
+            this.scene.start(scenes.highScores)
+        })
 
         this.input.keyboard.once('keydown-SPACE', () => {
             if (!helpPanel.visible) {
