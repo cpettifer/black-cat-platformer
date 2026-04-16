@@ -5,6 +5,7 @@ import Phaser from 'phaser'
 import styled from 'styled-components'
 import { GlobalStyle } from './components/GlobalStyle'
 import { mobileInput } from './game/mobileInput'
+import { VirtualJoystick } from './components/VirtualJoystick'
 
 const mobileLandscape = '@media (orientation: landscape) and (max-height: 600px)'
 const isTouchDevice = window.matchMedia('(pointer: coarse)').matches || navigator.maxTouchPoints > 0
@@ -102,20 +103,7 @@ const Header = styled.div`
     }
 `
 
-// Each panel is a flex container; zones inside fill the full area and split it.
-// min-width: 0 is required on mobile WebKit to allow flex: 1 to expand correctly.
-const LeftPanel = styled.div`
-    display: none;
-
-    ${mobileLandscape} {
-        display: flex;
-        flex: 1;
-        min-width: 0;
-        flex-direction: row;
-        align-items: stretch;
-    }
-`
-
+// Right panel: top quarter = fullscreen, bottom three quarters = jump
 const RightPanel = styled.div`
     display: none;
 
@@ -128,8 +116,7 @@ const RightPanel = styled.div`
     }
 `
 
-// Full-area touch zone — the entire zone is the interactive target.
-// $flex controls how much of the panel this zone takes up.
+// Full-area touch zone. $flex controls proportion of the panel it occupies.
 const ControlZone = styled.div`
     flex: ${(props) => props.$flex || 1};
     display: flex;
@@ -193,38 +180,7 @@ const Application = () => (
                 </div>
             </Header>
             <hr />
-            {isTouchDevice && (
-                <LeftPanel>
-                    <ControlZone
-                        onPointerDown={(e) => {
-                            e.preventDefault()
-                            mobileInput.left = true
-                        }}
-                        onPointerUp={() => {
-                            mobileInput.left = false
-                        }}
-                        onPointerLeave={() => {
-                            mobileInput.left = false
-                        }}
-                    >
-                        <ButtonGraphic>←</ButtonGraphic>
-                    </ControlZone>
-                    <ControlZone
-                        onPointerDown={(e) => {
-                            e.preventDefault()
-                            mobileInput.right = true
-                        }}
-                        onPointerUp={() => {
-                            mobileInput.right = false
-                        }}
-                        onPointerLeave={() => {
-                            mobileInput.right = false
-                        }}
-                    >
-                        <ButtonGraphic>→</ButtonGraphic>
-                    </ControlZone>
-                </LeftPanel>
-            )}
+            {isTouchDevice && <VirtualJoystick />}
             <div id="game" />
             {isTouchDevice && (
                 <RightPanel>
