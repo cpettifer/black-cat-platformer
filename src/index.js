@@ -130,10 +130,11 @@ const ControlZone = styled.div`
     outline: none;
 `
 
-// Visual indicator only — pointer-events disabled so the zone captures all touches
-const ButtonGraphic = styled.div`
-    width: 72px;
-    height: 72px;
+// Round jump button — pointer-events disabled so the zone captures all touches
+const JumpButton = styled.div`
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -142,7 +143,9 @@ const ButtonGraphic = styled.div`
     box-shadow: inset 0 0 0 4px rgba(68, 68, 170, 0.7);
     color: #ffff00;
     font-family: monospace;
-    font-size: 32px;
+    font-size: 16px;
+    font-weight: bold;
+    letter-spacing: 1px;
     pointer-events: none;
 `
 
@@ -189,6 +192,7 @@ const Application = () => (
                     </ControlZone>
                     <ControlZone
                         $flex={3}
+                        style={{ alignItems: 'flex-end', paddingBottom: '75px' }}
                         onPointerDown={(e) => {
                             e.preventDefault()
                             mobileInput.up = true
@@ -200,7 +204,7 @@ const Application = () => (
                             mobileInput.up = false
                         }}
                     >
-                        <ButtonGraphic>↑</ButtonGraphic>
+                        <JumpButton>JUMP</JumpButton>
                     </ControlZone>
                 </RightPanel>
             )}
