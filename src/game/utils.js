@@ -1,15 +1,29 @@
 import { LEVEL_BONUS_MAX, LEVEL_BONUS_DECAY_RATE } from './const/gameConfig'
 
-const HIGH_SCORE_KEY = 'blackcat_highscore'
+const SCORES_KEY = 'blackcat_scores'
 
-export const getHighScore = () => parseInt(localStorage.getItem(HIGH_SCORE_KEY) || '0', 10)
-
-export const saveHighScore = (score) => {
-    if (score > getHighScore()) {
-        localStorage.setItem(HIGH_SCORE_KEY, String(score))
-        return true
+export const getScores = () => {
+    try {
+        return JSON.parse(localStorage.getItem(SCORES_KEY) || '[]')
+    } catch {
+        return []
     }
-    return false
+}
+
+export const getHighScore = () => getScores()[0]?.score ?? 0
+
+export const isTopTen = (score) => {
+    if (score <= 0) return false
+    const scores = getScores()
+    return scores.length < 10 || score > scores[scores.length - 1].score
+}
+
+export const addScore = (initials, score) => {
+    const scores = getScores()
+    scores.push({ initials: initials.toUpperCase().slice(0, 3).padEnd(3, ' '), score })
+    scores.sort((a, b) => b.score - a.score)
+    if (scores.length > 10) scores.splice(10)
+    localStorage.setItem(SCORES_KEY, JSON.stringify(scores))
 }
 
 export const formatTime = (totalSeconds) => {
