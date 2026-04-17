@@ -36,7 +36,7 @@ export class EnterInitials extends Scene {
 
         // Retro panel
         const pw = 480
-        const ph = 340
+        const ph = 370
         const left = cx - pw / 2
         const top = cy - ph / 2
         const g = this.add.graphics()
@@ -119,7 +119,7 @@ export class EnterInitials extends Scene {
         const btnW = 160
         const btnH = 44
         const btnX = cx - btnW / 2
-        const btnY = top + ph - 64
+        const btnY = top + ph - 90
 
         const btnGraphic = this.add.graphics()
         btnGraphic.fillStyle(0x0000aa, 1)
@@ -162,7 +162,7 @@ export class EnterInitials extends Scene {
                 'Arrow keys to navigate  •  A-Z to type  •  ENTER to confirm',
                 {
                     font: '10px monospace',
-                    fill: '#444466'
+                    fill: '#8888aa'
                 }
             )
             .setOrigin(0.5, 1)
