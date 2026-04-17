@@ -3,16 +3,16 @@ import { Scene } from 'phaser'
 import { scenes } from '../const/scenes'
 import { addScore } from '../utils'
 
-const SLOT_SPACING = 64
-const SLOT_W = 48
-const SLOT_H = 56
+const SLOT_COUNT = 3
+const SLOT_SPACING = 90
+const LETTER_A = 65
+const LETTER_Z = 90
 
 export class EnterInitials extends Scene {
-    initials = ''
-    letterTexts = []
-    slotGraphics = []
-    submitTimer = null
-    hiddenInput = null
+    initials = ['A', 'A', 'A']
+    activeSlot = 0
+    slotTexts = []
+    slotOutlines = []
 
     constructor() {
         super({ key: scenes.enterInitials })
@@ -20,8 +20,8 @@ export class EnterInitials extends Scene {
 
     init(data) {
         this.score = data.score
-        this.initials = ''
-        this.submitTimer = null
+        this.initials = ['A', 'A', 'A']
+        this.activeSlot = 0
     }
 
     create() {
@@ -36,7 +36,7 @@ export class EnterInitials extends Scene {
 
         // Retro panel
         const pw = 480
-        const ph = 300
+        const ph = 370
         const left = cx - pw / 2
         const top = cy - ph / 2
         const g = this.add.graphics()
@@ -48,133 +48,195 @@ export class EnterInitials extends Scene {
         g.strokeRect(left + 8, top + 8, pw - 16, ph - 16)
 
         this.add
-            .text(cx, top + 28, 'NEW HIGH SCORE!', {
+            .text(cx, top + 26, 'NEW HIGH SCORE!', {
                 font: 'bold 18px monospace',
                 fill: '#ffff00'
             })
             .setOrigin(0.5, 0)
 
         this.add
-            .text(cx, top + 60, `Score: ${this.score}`, {
+            .text(cx, top + 56, `Score: ${this.score}`, {
                 font: '16px monospace',
                 fill: '#ffffff'
             })
             .setOrigin(0.5, 0)
 
         this.add
-            .text(cx, top + 90, 'ENTER YOUR INITIALS', {
+            .text(cx, top + 84, 'ENTER YOUR INITIALS', {
                 font: '13px monospace',
                 fill: '#aaaaaa'
             })
             .setOrigin(0.5, 0)
 
-        // Letter slots
-        this.letterTexts = []
-        this.slotGraphics = []
-        const slotsY = cy + 20
+        // Slot positions
+        const slotY = cy + 10
+        const arrowStyle = { font: 'bold 22px monospace', fill: '#ffffff' }
+        const arrowActiveStyle = { font: 'bold 22px monospace', fill: '#ffff00' }
 
-        for (let i = 0; i < 3; i++) {
+        this.slotTexts = []
+        this.slotOutlines = []
+
+        for (let i = 0; i < SLOT_COUNT; i++) {
             const x = cx + (i - 1) * SLOT_SPACING
-            const slotG = this.add.graphics()
-            this.slotGraphics.push(slotG)
-            this.drawSlot(slotG, x, slotsY, false)
 
-            const t = this.add
-                .text(x, slotsY + SLOT_H / 2, '_', {
-                    font: 'bold 36px monospace',
+            // Up arrow — large interactive zone
+            const upZone = this.add
+                .text(x, slotY - 52, '▲', arrowStyle)
+                .setOrigin(0.5)
+                .setInteractive({ useHandCursor: true })
+                .setPadding(20)
+
+            upZone.on('pointerover', () => upZone.setStyle(arrowActiveStyle))
+            upZone.on('pointerout', () => upZone.setStyle(arrowStyle))
+            upZone.on('pointerup', () => this.cycleLetter(i, 1))
+
+            // Slot outline (redrawn on update)
+            const outline = this.add.graphics()
+            this.slotOutlines.push(outline)
+
+            // Letter text
+            const letterText = this.add
+                .text(x, slotY, 'A', {
+                    font: 'bold 40px monospace',
                     fill: '#ffff00'
                 })
                 .setOrigin(0.5)
-            this.letterTexts.push(t)
+            this.slotTexts.push(letterText)
+
+            // Down arrow — large interactive zone
+            const downZone = this.add
+                .text(x, slotY + 54, '▼', arrowStyle)
+                .setOrigin(0.5)
+                .setInteractive({ useHandCursor: true })
+                .setPadding(20)
+
+            downZone.on('pointerover', () => downZone.setStyle(arrowActiveStyle))
+            downZone.on('pointerout', () => downZone.setStyle(arrowStyle))
+            downZone.on('pointerup', () => this.cycleLetter(i, -1))
         }
 
-        this.add
-            .text(cx, top + ph - 22, 'A-Z to type  •  BACKSPACE to delete  •  ENTER to confirm', {
-                font: '11px monospace',
-                fill: '#555555'
-            })
-            .setOrigin(0.5, 1)
+        // CONFIRM button
+        const btnW = 160
+        const btnH = 44
+        const btnX = cx - btnW / 2
+        const btnY = top + ph - 90
 
-        this.updateDisplay()
+        const btnGraphic = this.add.graphics()
+        btnGraphic.fillStyle(0x0000aa, 1)
+        btnGraphic.fillRect(btnX, btnY, btnW, btnH)
+        btnGraphic.lineStyle(2, 0xffffff, 1)
+        btnGraphic.strokeRect(btnX, btnY, btnW, btnH)
+
+        const btnText = this.add
+            .text(cx, btnY + btnH / 2, 'CONFIRM', {
+                font: 'bold 16px monospace',
+                fill: '#ffff00'
+            })
+            .setOrigin(0.5)
+
+        // Make the button interactive via a zone
+        const btnZone = this.add
+            .zone(cx, btnY + btnH / 2, btnW, btnH)
+            .setInteractive({ useHandCursor: true })
+
+        btnZone.on('pointerover', () => {
+            btnGraphic.clear()
+            btnGraphic.fillStyle(0x0000dd, 1)
+            btnGraphic.fillRect(btnX, btnY, btnW, btnH)
+            btnGraphic.lineStyle(2, 0xffffff, 1)
+            btnGraphic.strokeRect(btnX, btnY, btnW, btnH)
+        })
+        btnZone.on('pointerout', () => {
+            btnGraphic.clear()
+            btnGraphic.fillStyle(0x0000aa, 1)
+            btnGraphic.fillRect(btnX, btnY, btnW, btnH)
+            btnGraphic.lineStyle(2, 0xffffff, 1)
+            btnGraphic.strokeRect(btnX, btnY, btnW, btnH)
+        })
+        btnZone.on('pointerup', () => this.submit())
+
+        this.add
+            .text(
+                cx,
+                top + ph - 16,
+                'Arrow keys to navigate  •  A-Z to type  •  ENTER to confirm',
+                {
+                    font: '10px monospace',
+                    fill: '#8888aa'
+                }
+            )
+            .setOrigin(0.5, 1)
 
         this.input.keyboard.on('keydown', this.handleKey, this)
 
-        // Hidden input to trigger the on-screen keyboard on mobile
-        this.hiddenInput = document.createElement('input')
-        this.hiddenInput.setAttribute('type', 'text')
-        this.hiddenInput.setAttribute('autocomplete', 'off')
-        this.hiddenInput.setAttribute('autocorrect', 'off')
-        this.hiddenInput.setAttribute('autocapitalize', 'characters')
-        this.hiddenInput.style.cssText =
-            'position:fixed;opacity:0;top:0;left:0;width:1px;height:1px;border:none;outline:none;'
-        document.body.appendChild(this.hiddenInput)
-
-        // Small delay before focus so the scene is fully ready
-        this.time.delayedCall(100, () => {
-            if (this.hiddenInput) this.hiddenInput.focus()
-        })
+        this.updateDisplay()
     }
 
-    drawSlot(g, x, y, active) {
-        g.clear()
-        g.lineStyle(2, active ? 0xffffff : 0x4444aa, 1)
-        g.strokeRect(x - SLOT_W / 2, y, SLOT_W, SLOT_H)
+    cycleLetter(slotIndex, direction) {
+        const current = this.initials[slotIndex].charCodeAt(0)
+        const next = ((current - LETTER_A + direction + 26) % 26) + LETTER_A
+        this.initials[slotIndex] = String.fromCharCode(next)
+        this.activeSlot = slotIndex
+        this.updateDisplay()
     }
 
     handleKey(event) {
-        // Cancel pending auto-submit if user is still typing
-        if (this.submitTimer) {
-            this.submitTimer.remove()
-            this.submitTimer = null
-        }
-
-        const key = event.key
-
-        if (key === 'Backspace') {
-            this.initials = this.initials.slice(0, -1)
-            this.updateDisplay()
-        } else if (key === 'Enter' && this.initials.length > 0) {
-            this.submit()
-        } else if (key.length === 1 && /[a-zA-Z]/.test(key) && this.initials.length < 3) {
-            this.initials += key.toUpperCase()
-            this.updateDisplay()
-            if (this.initials.length === 3) {
-                // Auto-submit after a short pause so the player can see the last letter
-                this.submitTimer = this.time.delayedCall(600, this.submit, [], this)
-            }
+        switch (event.key) {
+            case 'ArrowLeft':
+                this.activeSlot = Math.max(0, this.activeSlot - 1)
+                this.updateDisplay()
+                break
+            case 'ArrowRight':
+                this.activeSlot = Math.min(SLOT_COUNT - 1, this.activeSlot + 1)
+                this.updateDisplay()
+                break
+            case 'ArrowUp':
+                this.cycleLetter(this.activeSlot, 1)
+                break
+            case 'ArrowDown':
+                this.cycleLetter(this.activeSlot, -1)
+                break
+            case 'Enter':
+            case ' ':
+                this.submit()
+                break
+            default:
+                if (event.key.length === 1 && /[a-zA-Z]/.test(event.key)) {
+                    this.initials[this.activeSlot] = event.key.toUpperCase()
+                    this.activeSlot = Math.min(SLOT_COUNT - 1, this.activeSlot + 1)
+                    this.updateDisplay()
+                }
         }
     }
 
     updateDisplay() {
-        const activeIndex = Math.min(this.initials.length, 2)
-        const { width, height } = this.cameras.main
-        const cx = width / 2
-        const slotsY = height / 2 + 20
-
-        for (let i = 0; i < 3; i++) {
+        for (let i = 0; i < SLOT_COUNT; i++) {
+            const { width, height } = this.cameras.main
+            const cx = width / 2
+            const slotY = height / 2 + 10
             const x = cx + (i - 1) * SLOT_SPACING
-            const isActive = i === activeIndex && this.initials.length < 3
-            this.drawSlot(this.slotGraphics[i], x, slotsY, isActive)
-            this.letterTexts[i].setText(this.initials[i] || '_')
+            const isActive = i === this.activeSlot
+
+            // Redraw slot outline
+            this.slotOutlines[i].clear()
+            this.slotOutlines[i].lineStyle(2, isActive ? 0xffffff : 0x4444aa, 1)
+            this.slotOutlines[i].strokeRect(x - 26, slotY - 28, 52, 56)
+            if (isActive) {
+                this.slotOutlines[i].fillStyle(0x0000aa, 0.25)
+                this.slotOutlines[i].fillRect(x - 26, slotY - 28, 52, 56)
+            }
+
+            this.slotTexts[i].setText(this.initials[i])
         }
     }
 
     submit() {
         this.input.keyboard.off('keydown', this.handleKey, this)
-        const initials = this.initials.padEnd(3, ' ')
-        addScore(initials, this.score)
-        this.cleanup()
+        addScore(this.initials.join(''), this.score)
         this.scene.start(scenes.highScores, { highlightScore: this.score })
     }
 
     shutdown() {
-        this.cleanup()
-    }
-
-    cleanup() {
-        if (this.hiddenInput) {
-            document.body.removeChild(this.hiddenInput)
-            this.hiddenInput = null
-        }
+        // No DOM cleanup needed — this scene is fully Phaser-native
     }
 }
